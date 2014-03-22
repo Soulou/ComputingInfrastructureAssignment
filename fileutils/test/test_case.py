@@ -2,12 +2,16 @@ import unittest
 import saga
 import os
 import fileutils
+import sessions
+import getpass
+
+class SampleArgs:
+    def __init__(self):
+        self.certificate = None
+        self.identity = None
+        self.user = getpass.getuser()
 
 class TestCase(unittest.TestCase):
-    _session = None
+    sessions.Factory.setup(SampleArgs())
     def session(self):
-        if TestCase._session == None:
-            TestCase._session = saga.Session()
-            ctx = saga.Context("ssh")
-            TestCase._session.add_context(ctx)
-        return TestCase._session
+        return sessions.Factory.new()
