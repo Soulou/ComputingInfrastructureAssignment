@@ -5,6 +5,7 @@ import saga
 import fileutils
 import argparse
 import getpass
+import sessions
 
 def main():
     parser = argparse.ArgumentParser(description='Exec jobs  using saga API')
@@ -12,8 +13,12 @@ def main():
         help='standard input for the job')
     parser.add_argument('--stdout', '-o', metavar="stdout", type=str, nargs="?",
         help='standard output for the job')
+    parser.add_argument('--identity', '-i', metavar='private_key', type=str, nargs="?",
+        help='custom private key for SSH connection')
+    parser.add_argument('--certificate', '-c', metavar='certificate', type=str, nargs="?",
+        help='enable GSISSH connection, specify certificate to use')
     parser.add_argument('--user', '-u', metavar='user', type=str, nargs=1, default=getpass.getuser(),
-        help='user to use for ssh connections')
+        help='user to use for SSH connections')
     parser.add_argument('--contact-string', '-r', metavar='contact_string', type=str, nargs=1,
         help='connection string for reaching server')
     parser.add_argument('command', metavar='command', type=str, nargs=1,
@@ -21,12 +26,10 @@ def main():
     parser.add_argument('args', metavar='args', type=str, nargs="*",
         help='arguments for the command')
     args = parser.parse_args()
+    sessions.Factory.setup(args)
 
     try:
-        ctx = saga.Context("ssh")
-        ctx.user_id  = args.user
-        session = saga.Session()
-        session.add_context(ctx)
+        session = sessions.Factory.new()
 
         if len(args.contact_string) == 0:
             print "Please provide -r <contact-string>"
@@ -45,14 +48,14 @@ def main():
 
         if args.stdin != None:
             jd.input = "/tmp/job-in"
-            fileutils.copy([args.stdin], in_file, True)
+            fileutils.copy([args.stdin], in_file, force=True)
 
         job = js.create_job(jd)
         job.run()
         job.wait()
 
         if args.stdout != None:
-            fileutils.copy([out_file], args.stdout, False, True)
+            fileutils.copy([out_file], args.stdout, force=True)
         else:
             fileutils.cat([out_file])
 

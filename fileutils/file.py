@@ -80,18 +80,18 @@ class File:
             raise UnauthorizedOverrideException(self, dest.url)
 
     def remove(self):
-        if self.is_dir:
-            raise RemoveDirectoryException(self)
         if not self.exist:
             raise UnknownFileException(self)
+        if self.is_dir:
+            raise RemoveDirectoryException(self)
 
         self.fd.remove()
 
     def list(self):
+        if not self.exist:
+            raise UnknownFileException(self)
         if not self.is_dir:
             raise ListFileException(self)
-        if not self.exist:
-            raise UnknownDirException(self)
 
         dir = saga.filesystem.Directory(self.url)
         for entry in dir.list():

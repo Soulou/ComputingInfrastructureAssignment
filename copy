@@ -7,6 +7,7 @@ import saga.filesystem
 import argparse
 import getpass
 import fileutils
+import sessions
 
 '''
    SAGA_VERBOSE=# for Debug
@@ -18,6 +19,10 @@ def main():
         help='force operation, /!\\ file can be overriden')
     parser.add_argument('-v', '--verbose', action="store_true",
         help='print additional information')
+    parser.add_argument('--identity', '-i', metavar='private_key', type=str, nargs="?",
+        help='custom private key for SSH connection')
+    parser.add_argument('--certificate', '-c', metavar='certificate', type=str, nargs="?",
+        help='enable GSISSH connection, specify certificate to use')
     parser.add_argument('--user', '-u', metavar='user', type=str, nargs=1, default=getpass.getuser(),
         help='user to use for ssh connections')
     parser.add_argument('files', metavar='file', type=str, nargs='+',
@@ -25,9 +30,10 @@ def main():
     parser.add_argument('dest', metavar='dest', type=str, nargs=1,
         help='destination of the copy')
     args = parser.parse_args()
+    sessions.Factory.setup(args)
     
     try:
-        fileutils.copy(args.files, args.dest[0], args.verbose, args.force, args.user)
+        fileutils.copy(args.files, args.dest[0], verbose=args.verbose, force=args.force)
         return 0
     except (fileutils.FileutilsException), e:
         print "Exception of copy: %s" % str(e)

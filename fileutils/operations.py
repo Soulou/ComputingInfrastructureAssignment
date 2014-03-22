@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 import saga
-import getpass
+import sessions
 from .file import *
 
-def _build_ssh_session(user):
-    ctx = saga.Context("ssh")
-    ctx.user_id = user
-    session = saga.Session()
-    session.add_context(ctx)
+def copy(files, dest, **kwargs):
+    verbose = kwargs.get('verbose', False)
+    force   = kwargs.get('force', False)
 
-def copy(files, dest, verbose=False, force=False, user=getpass.getuser()):
-    session = _build_ssh_session(user)
+    session = sessions.Factory.new()
 
     dest_url = saga.Url(dest)
     src_urls = []
@@ -30,8 +27,8 @@ def copy(files, dest, verbose=False, force=False, user=getpass.getuser()):
         except FileutilsException, e:
             print e
 
-def cat(files, outfile=None, user=getpass.getuser()):
-    session = _build_ssh_session(user)
+def cat(files, outfile=None):
+    session = sessions.Factory.new()
 
     output = None
     out = ""
@@ -51,14 +48,14 @@ def cat(files, outfile=None, user=getpass.getuser()):
     if output != None:
         output.write(out)
 
-def list(dir, user=getpass.getuser()):
-    session = _build_ssh_session(user)
+def list(dir):
+    session = sessions.Factory.new()
     _dir = File(session, dir)
     for file in _dir.list():
         print file
 
-def remove(files, user=getpass.getuser()):
-    session = _build_ssh_session(user)
+def remove(files):
+    session = sessions.Factory.new()
 
     for _f in files:
         try:

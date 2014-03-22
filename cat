@@ -7,6 +7,7 @@ import saga.filesystem
 import argparse
 import getpass
 import fileutils
+import sessions
 
 '''
    SAGA_VERBOSE=# for Debug
@@ -16,14 +17,19 @@ def main():
     parser = argparse.ArgumentParser(description='Cat files using saga API')
     parser.add_argument('-o', '--output', metavar='output', type=str,
         help='concaten to file instead of stdout')
+    parser.add_argument('--identity', '-i', metavar='private_key', type=str, nargs="?",
+        help='custom private key for SSH connection')
+    parser.add_argument('--certificate', '-c', metavar='certificate', type=str, nargs="?",
+        help='enable GSISSH connection, specify certificate to use')
     parser.add_argument('--user', '-u', metavar='user', type=str, nargs=1, default=getpass.getuser(),
         help='user to use for ssh connections')
     parser.add_argument('files', metavar='file', type=str, nargs='+',
         help='file to concaten')
     args = parser.parse_args()
+    sessions.Factory.setup(args)
     
     try:
-        fileutils.cat(args.files, args.output, args.user)
+        fileutils.cat(args.files, args.output)
         return 0
     except fileutils.FileutilsException, e:
         print "Exception of cat: %s" % str(e)
