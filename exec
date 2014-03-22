@@ -1,0 +1,73 @@
+#!/usr/bin/env python2
+
+import sys
+import saga
+import fileutils
+import argparse
+import getpass
+
+def main():
+    parser = argparse.ArgumentParser(description='Exec jobs  using saga API')
+    parser.add_argument('--stdin', '-i', metavar='stdin', type=str, nargs="?",
+        help='standard input for the job')
+    parser.add_argument('--stdout', '-o', metavar="stdout", type=str, nargs="?",
+        help='standard output for the job')
+    parser.add_argument('--user', '-u', metavar='user', type=str, nargs=1, default=getpass.getuser(),
+        help='user to use for ssh connections')
+    parser.add_argument('--contact-string', '-r', metavar='contact_string', type=str, nargs=1,
+        help='connection string for reaching server')
+    parser.add_argument('command', metavar='command', type=str, nargs=1,
+        help='command to run')
+    parser.add_argument('args', metavar='args', type=str, nargs="*",
+        help='arguments for the command')
+    args = parser.parse_args()
+
+    try:
+        ctx = saga.Context("ssh")
+        ctx.user_id  = args.user
+        session = saga.Session()
+        session.add_context(ctx)
+
+        if len(args.contact_string) == 0:
+            print "Please provide -r <contact-string>"
+            return -1
+
+        js = saga.job.Service(args.contact_string[0], session=session)
+
+        jd = saga.job.Description()
+        jd.executable  = args.command[0]
+        jd.arguments   = args.args
+        jd.output      = "/tmp/job-out"
+        jd.error       = "/tmp/job-out"
+
+        out_file = "%s/tmp/job-out" % args.contact_string[0]
+        in_file = "%s/tmp/job-in" % args.contact_string[0]
+
+        if args.stdin != None:
+            jd.input = "/tmp/job-in"
+            fileutils.copy([("file://localhost%s" % args.stdin)], in_file, True)
+
+        job = js.create_job(jd)
+        job.run()
+        job.wait()
+
+        if args.stdout != None:
+            fileutils.copy([out_file], args.stdout, False, True)
+        else:
+            fileutils.cat([out_file])
+
+        if args.stdin != None:
+            fileutils.remove([in_file, out_file])
+        else:
+            fileutils.remove([out_file])
+        return 0
+    except saga.SagaException, ex:
+        # Catch all saga exceptions
+        print "An exception occured: (%s) %s " % (ex.type, (str(ex)))
+        # Trace back the exception. That can be helpful for debugging.
+        print " \n*** Backtrace:\n %s" % ex.traceback
+        return -1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

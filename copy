@@ -1,0 +1,40 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
+import sys
+import saga
+import saga.filesystem
+import argparse
+import getpass
+import fileutils
+
+'''
+   SAGA_VERBOSE=# for Debug
+'''
+
+def main():
+    parser = argparse.ArgumentParser(description='Copy files using saga API')
+    parser.add_argument('-f', '--force', action="store_true",
+        help='force operation, /!\\ file can be overriden')
+    parser.add_argument('-v', '--verbose', action="store_true",
+        help='print additional information')
+    parser.add_argument('--user', '-u', metavar='user', type=str, nargs=1, default=getpass.getuser(),
+        help='user to use for ssh connections')
+    parser.add_argument('files', metavar='file', type=str, nargs='+',
+        help='a file to copy to the destination')
+    parser.add_argument('dest', metavar='dest', type=str, nargs=1,
+        help='destination of the copy')
+    args = parser.parse_args()
+    
+    try:
+        fileutils.copy(args.files, args.dest[0], args.verbose, args.force, args.user)
+        return 0
+    except (fileutils.FileutilsException), e:
+        print "Exception of copy: %s" % str(e)
+    except saga.SagaException, ex:
+        print "A sage exception occured: (%s) %s " % (ex.type, (str(ex)))
+        print " \n*** Backtrace:\n %s" % ex.traceback
+        return -1
+
+if __name__ == "__main__":
+    sys.exit(main())
