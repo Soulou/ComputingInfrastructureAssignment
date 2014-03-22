@@ -45,7 +45,7 @@ def main():
 
         if args.stdin != None:
             jd.input = "/tmp/job-in"
-            fileutils.copy([("file://localhost%s" % args.stdin)], in_file, True)
+            fileutils.copy([args.stdin], in_file, True)
 
         job = js.create_job(jd)
         job.run()
