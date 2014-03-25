@@ -23,9 +23,9 @@ $ run_workflow [--verbose/-v] <workflow_file>
 ### Common flags
 
 ```
---user|-u
---identify|-i
---certificate|-c
+--user|-u <user>
+--identify|-i <ssh_private_key>
+--certificate|-c <X509_certificate>
 ```
 
-Please look at the (documentation)[https://github.com/Soulou/ComputingInfrastructureAssignment/wiki] for more details
+Please look at the [documentation](https://github.com/Soulou/ComputingInfrastructureAssignment/wiki) for more details
