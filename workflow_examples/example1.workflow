@@ -1,0 +1,8 @@
+JOB A ./ls /
+JOB B ./ls /
+JOB C ./ls /
+JOB D ./ls /
+
+PARENT A CHILD B
+PARENT B CHILD C
+PARENT C CHILD D

@@ -1,0 +1,11 @@
+JOB A ls /
+JOB B ls /
+JOB C ls /
+JOB D ls /
+JOB E cat /proc/cpuinfo
+
+PARENT A CHILD B
+PARENT B CHILD C
+PARENT C CHILD A
+PARENT D CHILD C
+PARENT E CHILD D

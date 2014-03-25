@@ -2,12 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import saga
-import saga.filesystem
 import argparse
 import getpass
 import fileutils
 import sessions
+import workflow
 
 '''
    SAGA_VERBOSE=# for Debug
@@ -15,29 +14,31 @@ import sessions
 
 def main():
     parser = argparse.ArgumentParser(description='Cat files using saga API')
-    parser.add_argument('-o', '--output', metavar='output', type=str,
-        help='concaten to file instead of stdout')
     parser.add_argument('--identity', '-i', metavar='private_key', type=str, nargs="?",
         help='custom private key for SSH connection')
     parser.add_argument('--certificate', '-c', metavar='certificate', type=str, nargs="?",
         help='enable GSISSH connection, specify certificate to use')
     parser.add_argument('--user', '-u', metavar='user', type=str, nargs=1, default=getpass.getuser(),
         help='user to use for ssh connections')
-    parser.add_argument('files', metavar='file', type=str, nargs='+',
-        help='file to concaten')
+    parser.add_argument('-v', '--verbose', action="store_true",
+        help='print additional information')
+    parser.add_argument('workflow', metavar='workflow', type=str, nargs=1,
+        help='workflow file to run')
     args = parser.parse_args()
+    workflow_file = args.workflow[0]
     sessions.Factory.setup(args)
-    
-    try:
-        fileutils.cat(args.files, args.output)
-        return 0
-    except fileutils.FileutilsException, e:
-        print "Exception of cat: %s" % str(e)
-        return 1
-    except saga.SagaException, ex:
-        print "A saga exception occured: (%s) %s " % (ex.type, (str(ex)))
-        print " \n*** Backtrace:\n %s" % ex.traceback
-        return -1
 
+    try:
+        workflow_tree = workflow.Tree(workflow_file)
+        if args.verbose:
+            print "Tree of the workflow:\n%s" % workflow_tree
+        workflow_tree.run()
+        return 0
+    except Exception, e:
+        print "Exception occured: %s" % e.message
+        return 1
+    
 if __name__ == "__main__":
     sys.exit(main())
+
+
