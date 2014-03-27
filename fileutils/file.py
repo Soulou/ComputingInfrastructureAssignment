@@ -20,7 +20,7 @@ class File:
             url = "file://localhost%s" % path.abspath(url)
             self.url = saga.Url(url)
 
-        if not re.match("^file|ssh|sftp|local$", self.url.scheme):
+        if not re.match("^file|ssh|sftp|local", self.url.scheme):
             raise BadProtocolException(self.url)
 
         try:

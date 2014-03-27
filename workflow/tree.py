@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
+import time
 import re
 from .job import Job
 from .relation import Relation
 
+class Exception(Exception):
+    pass
+
 class ExecutionError(Exception):
     def __init__(self, job):
-        self.message = "An error occured for job %s", job
+        self.message = "An error occured for job %s" % job
 
 class CycleWorkflowError(Exception):
     def __init__(self, cycle):
@@ -159,25 +163,41 @@ class Tree:
                     stack.pop()
         return None
 
-    def run(self):
+    def _run_orphans(self):
         to_remove = set()
         for n in self.nodes:
             if n.is_orphan():
-                ret = n.job.run()
-                if ret != 0:
-                    raise ExecutionException(n.job)
+                self._run_job(n.job)
                 to_remove.add(n)
         while len(to_remove) > 0:
             self.remove_node(to_remove.pop())
-        
+
+    def _run_workflow(self):
+        to_remove = set()
         while len(self.nodes) > 0:
             for n in self.nodes:
                 if n.is_leaf():
-                    n.job.run()
+                    self._run_job(n.job)
                     to_remove.add(n)
-
             while len(to_remove) > 0:
                 self.remove_node(to_remove.pop())
+
+    def _run_job(self, job):
+        for i in range(self.nb_tries-1):
+            ret = job.run()
+            if ret != 0:
+                print "Fail to execute %s (Try %d)" % (job, i+1)
+                time.sleep(self.retry_wait)
+        
+        ret = job.run()
+        if ret != 0:
+            raise ExecutionError(job)
+
+    def run(self, **kwargs):
+        self.retry_wait = kwargs.get("retry_wait", 3)
+        self.nb_tries = kwargs.get("nb_tries", 1)
+        self._run_orphans()
+        self._run_workflow()
 
     def remove_node(self, node):
         for n in self.nodes:
