@@ -29,3 +29,12 @@ $ run_workflow [--verbose/-v] <workflow_file>
 ```
 
 Please look at the [documentation](https://github.com/Soulou/ComputingInfrastructureAssignment/wiki) for more details
+
+Tests
+-----
+
+Unit tests and functional tests have been written using the `unittest` package. To run these tests:
+
+```sh
+./run_test.sh
+````
